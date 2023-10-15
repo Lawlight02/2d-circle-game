@@ -11,22 +11,60 @@ window.addEventListener("resize", ()=>{
     canvas.height = window.innerHeight;
 });
 
+var mx;
+var my;
+var created = false;
 canvas.addEventListener("mousedown", (e)=>{
-    holding = true;    
-    let x = e.clientX;
-    let y = e.clientY;
-    circles.push(new Circle(x, y, 50, colors[Math.floor(Math.random() * colors.length)]));
+    mx = e.clientX;
+    my = e.clientY;
+    if (circles.length > 0) {
+        for (let circle of circles) {
+            let distance = Math.sqrt(Math.pow(mx-circle.position.x,2) + Math.pow(my-circle.position.y,2));
+            if (distance <= circle.radius) {
+                created = true;
+                let v = [mx-circle.position.x, my-circle.position.y];
+                circle.velocity.x = v[0]/4;
+                circle.velocity.y = v[1]/4;
+            } else {
+                holding = true;
+            }
+        }
+    } else {
+        holding = true;
+    }
+});
 
+var createCircle = ()=>{
+    if (!created) {
+        circles.push(new Circle(mx, my, 50, colors[Math.floor(Math.random() * colors.length)]));
+        circles[circles.length-1].gravity = 0;
+        circles[circles.length-1].velocity.y = 0;
+        created = true;
+    }
+}
+
+document.addEventListener('mousemove', (e)=>{
+    mx = e.pageX;
+    my = e.pageY;
 });
 
 canvas.addEventListener("mouseup", (e)=>{
     holding = false;
+    created = false;
+    circles[circles.length-1].gravity = 1.25;
 });
 
 function draw() {
     ctx.fillStyle = "#005E78";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
    
+    if (holding) {
+        createCircle();
+        let v = [mx-circles[circles.length-1].position.x, my-circles[circles.length-1].position.y];
+        circles[circles.length-1].velocity.x = v[0]/4;
+        circles[circles.length-1].velocity.y = v[1]/4;
+    }
+
     for (var i = 0; i < circles.length; i++) {
         // ctx.font = "30px Arial";
         // ctx.fillStyle = "red";

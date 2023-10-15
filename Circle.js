@@ -5,6 +5,7 @@ class Circle {
         this.color = color;
         this.radius = r;
         this.weight = 1;
+        this.gravity = 1.25;
     }
 
     update () {
@@ -12,8 +13,7 @@ class Circle {
         this.position.y += this.velocity.y;
 
         // Gravity
-        this.velocity.y += 1.25;
-
+        this.velocity.y += this.gravity;
     }
 
     bounce (x, y) {
