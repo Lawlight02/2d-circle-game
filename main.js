@@ -3,73 +3,65 @@ ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 var circles = [];
-var holding = false;
 var colors = ["red", "orange", "yellow", "green", "cyan", "blue", "purple"];
+var mx, my;
+var holding = false;
+var created = false;
+let targetCircle = null;
 
 window.addEventListener("resize", ()=>{
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 });
 
-var mx;
-var my;
-var created = false;
-canvas.addEventListener("mousedown", (e)=>{
-    mx = e.clientX;
-    my = e.clientY;
-    if (circles.length > 0) {
-        for (let circle of circles) {
-            let distance = Math.sqrt(Math.pow(mx-circle.position.x,2) + Math.pow(my-circle.position.y,2));
-            if (distance <= circle.radius) {
-                created = true;
-                let v = [mx-circle.position.x, my-circle.position.y];
-                circle.velocity.x = v[0]/4;
-                circle.velocity.y = v[1]/4;
-            } else {
-                holding = true;
-            }
-        }
-    } else {
-        holding = true;
-    }
-});
-
-var createCircle = ()=>{
-    if (!created) {
-        circles.push(new Circle(mx, my, 50, colors[Math.floor(Math.random() * colors.length)]));
-        circles[circles.length-1].gravity = 0;
-        circles[circles.length-1].velocity.y = 0;
-        created = true;
-    }
-}
-
 document.addEventListener('mousemove', (e)=>{
     mx = e.pageX;
     my = e.pageY;
 });
 
-canvas.addEventListener("mouseup", (e)=>{
+canvas.addEventListener("mousedown", ()=>{
+    holding = true;
+});
+
+canvas.addEventListener("mouseup", ()=>{
     holding = false;
     created = false;
+    targetCircle = null;
     circles[circles.length-1].gravity = 1.25;
 });
+
+function createCircle() {
+    circles.push(new Circle(mx, my, 50, colors[Math.floor(Math.random() * colors.length)]));
+    circles[circles.length-1].gravity = 0;
+    circles[circles.length-1].velocity.y = 0;
+    created = true;
+}
+
+function grab(circle) {
+    circle.velocity.x = (mx - circle.position.x)/4;
+    circle.velocity.y = (my - circle.position.y)/4;
+}
 
 function draw() {
     ctx.fillStyle = "#005E78";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
    
     if (holding) {
-        createCircle();
-        let v = [mx-circles[circles.length-1].position.x, my-circles[circles.length-1].position.y];
-        circles[circles.length-1].velocity.x = v[0]/4;
-        circles[circles.length-1].velocity.y = v[1]/4;
+        if (circles.length > 0) {
+            for (let circle of circles) {
+                let distance = Math.sqrt(Math.pow(mx-circle.position.x,2) + Math.pow(my-circle.position.y,2));
+                if (distance <= circle.radius && !targetCircle) targetCircle = circle;
+            }
+        }
+
+        if (targetCircle) {
+            grab(targetCircle);
+        } else if (!created) {
+            createCircle();
+        }
     }
 
     for (var i = 0; i < circles.length; i++) {
-        // ctx.font = "30px Arial";
-        // ctx.fillStyle = "red";
-        // ctx.fillText(Math.floor(circles[i].velocity.y), circles[i].position.x, circles[i].position.y-100);
-
         for (var j = 0; j < circles.length; j++) {
             if (i == j) break;
             let distance = Math.sqrt(Math.pow((circles[i].position.x - circles[j].position.x), 2) + Math.pow(circles[i].position.y - circles[j].position.y, 2));
