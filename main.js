@@ -8,6 +8,7 @@ var mx, my;
 var holding = false;
 var created = false;
 let targetCircle = null;
+let nCircles = 0;
 
 window.addEventListener("resize", ()=>{
     canvas.width = window.innerWidth;
@@ -35,6 +36,7 @@ function createCircle() {
     circles[circles.length-1].gravity = 0;
     circles[circles.length-1].velocity.y = 0;
     created = true;
+    nCircles++;
 }
 
 function grab(circle) {
@@ -42,10 +44,19 @@ function grab(circle) {
     circle.velocity.y = (my - circle.position.y)/4;
 }
 
-function draw() {
+function render() {
     ctx.fillStyle = "#005E78";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-   
+    ctx.fillStyle = "white";
+    ctx.font = "30px Arial";
+    ctx.fillText(nCircles, 30, 50);
+    
+    for (var i = 0; i < circles.length; i++) {
+        circles[i].render(ctx);
+    }
+}
+
+function update() {
     if (holding) {
         if (circles.length > 0) {
             for (let circle of circles) {
@@ -89,9 +100,18 @@ function draw() {
         circles[i].clamp(0, canvas.width);
         circles[i].update();
         circles[i].bounce(canvas.width, canvas.height);
-        circles[i].render(ctx);
     }
-
-    requestAnimationFrame(draw);
 }
-draw();
+
+const fps = 100;
+var lastDelta = 0;
+function loop(delta) {
+    if (delta - lastDelta > 1000/fps) {
+        lastDelta = delta;
+        update();
+    }
+    render();
+    requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
